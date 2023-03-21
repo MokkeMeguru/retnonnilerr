@@ -1,6 +1,8 @@
 # retnonnilerr
 
-`retnonnilerr` is a static tool to prevent below unhandling error.
+[![Test](https://github.com/MokkeMeguru/retnonnilerr/actions/workflows/ci.yml/badge.svg)](https://github.com/MokkeMeguru/retnonnilerr/actions/workflows/ci.yml)
+
+`retnonnilerr` is a static analysis tool to prevent below unhandling error.
 
 ```golang
 func f() error {
@@ -25,9 +27,9 @@ retnonnilerr ./...
 
 ## From CI
 
-see. [my custom linter settings](./.github/workflows/ci.yml)
+See [my custom linter settings](./.github/workflows/ci.yml)
 
-try it using [act](https://github.com/nektos/act)
+Test it using [act](https://github.com/nektos/act) (WARNING: reviewdog cannot do normaly)
 
 ```
 act --job reviewdog
