@@ -27,6 +27,12 @@ retnonnilerr ./internal/...
 
 see. [my custom linter settings](./.github/workflows/ci.yml)
 
+try it using [act](https://github.com/nektos/act)
+
+```
+act --job reviewdog
+```
+
 ## Ignore Lint?
 
 If you want to ignore this linter at the line, you can comment `lint:ignore retnonnilerr`.
