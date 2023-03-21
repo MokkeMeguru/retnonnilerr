@@ -28,11 +28,11 @@ references:
 
 ```
 
-### initial main code
+### Initial main code
 
-the first code for static analyzer is following one.
+The first code for static analyzer is following one.
 
-when we need to check the return type, we can use the SSA (Static Single Assignment) form.
+When we need to check the return type, we can use the SSA (Static Single Assignment) form.
 
 ```golang
 package retnonnilerr
@@ -101,7 +101,7 @@ func Test_Run(t *testing.T) {
 }
 ```
 
-i recommend you add the Makefile as following to test our analyzer easier.
+I recommend you add the Makefile as following to test our analyzer easier.
 
 ```makefile
 deps:
@@ -117,9 +117,9 @@ test:
 	go test $(go list ./... | grep -v /testdata)
 ```
 
-## add the first test data
+## Add the first test data
 
-let's write the first test code. (our analyzer should passin the test.)
+Let's write the first test code. (our analyzer should pass these tests)
 
 ```golang
 package a
@@ -133,7 +133,7 @@ func funcA() (*T, error) {
 }
 ```
 
-test it.
+Test it.
 
 ```
 ❯ make test
@@ -142,7 +142,7 @@ PASS
 ok      github.com/MokkeMeguru/retnonnilerr     1.349s
 ```
 
-and then, add the red (failed) testcode.
+And then, add the red (failed) test code.
 
 ```golang
 func funcB() (*T, error) {
@@ -154,7 +154,7 @@ func funcB() (*T, error) {
 }
 ```
 
-test it.
+Test it.
 
 ```
 ❯ make test
@@ -167,13 +167,13 @@ FAIL    github.com/MokkeMeguru/retnonnilerr     1.087s
 make: *** [test] Error 1
 ```
 
-we failed the tests. that means, we are in the TDD's (red-green-refactor) process now.
+We failed the tests. That means, we are in the TDD's (red-green-refactor) process now.
 
 ## write the test's green code
 
-if we try to write the static check code, visualize the ast tree of sample code at first.
+When we try to write the static check code, visualize the sample code's SSA form at first.
 
-we can use the sample code to visualize the ast tree using the below utility code.
+We can use the below code to visualize the SSA form.
 
 ```golang
 package main
@@ -239,7 +239,7 @@ func main() {
 }
 ```
 
-let's try it to the test code.
+Let's try it to the red test code.
 
 ```golang
 ❯  go run ./utils/visualizessa -f ./testdata/src/a/a.go -d ./testdata/src/a
@@ -265,7 +265,7 @@ func funcB() (*T, error):
         return nil:*T, nil:error
 ```
 
-the first solution of code is here.(some detail codes omitted)
+(...after try and error) The first solution is here.
 
 ```
 func run(pass *analysis.Pass) (any, error) {
@@ -321,7 +321,7 @@ func checkErrorReturnValue(b *ssa.BasicBlock, pass *analysis.Pass) {
 }
 ```
 
-let's test analyzer.
+Test it.
 
 ```
 ❯ make test
@@ -330,12 +330,12 @@ PASS
 ok      github.com/MokkeMeguru/retnonnilerr     2.443s
 ```
 
-congratulation!
+Congratulation!
 
-## more TDD
+## More TDD
 
-we got the analyzer to detect `return nil` despite of handling `err`.
+We got the analyzer to detect `return nil` despite of handling `err`.
 
-but (you already know) this analyzer is not the completed one.
+But (you already know) this analyzer is not the completed one.
 
-we need to more test cases and try TDD cycle to improve the degree of perfection.
+We need to more test cases and try TDD cycle to improve the degree of perfection.
