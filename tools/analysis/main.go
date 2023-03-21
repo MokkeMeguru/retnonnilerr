@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/MeguruMokke/retnonnilerr"
+	"github.com/MokkeMeguru/retnonnilerr"
 	"golang.org/x/tools/go/analysis/multichecker"
 )
 

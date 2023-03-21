@@ -19,7 +19,7 @@ func f() error {
 
 ```
 cd path/to/product
-go install github.com/MeguruMokke/retnonnilerr/cmd/retnonnilerr
+go install github.com/MokkeMeguru/retnonnilerr/cmd/retnonnilerr
 retnonnilerr ./internal/...
 ```
 

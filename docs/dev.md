@@ -91,7 +91,7 @@ package retnonnilerr_test
 import (
 	"testing"
 
-	"github.com/MeguruMokke/retnonnilerr"
+	"github.com/MokkeMeguru/retnonnilerr"
 	"golang.org/x/tools/go/analysis/analysistest"
 )
 
@@ -139,7 +139,7 @@ test it.
 ❯ make test
 go test
 PASS
-ok      github.com/MeguruMokke/retnonnilerr     1.349s
+ok      github.com/MokkeMeguru/retnonnilerr     1.349s
 ```
 
 and then, add the red (failed) testcode.
@@ -163,7 +163,7 @@ go test
     analysistest.go:520: a/a.go:14: no diagnostic was reported matching `return err`
 FAIL
 exit status 1
-FAIL    github.com/MeguruMokke/retnonnilerr     1.087s
+FAIL    github.com/MokkeMeguru/retnonnilerr     1.087s
 make: *** [test] Error 1
 ```
 
@@ -357,7 +357,7 @@ let's test analyzer.
 ❯ make test
 go test
 PASS
-ok      github.com/MeguruMokke/retnonnilerr     2.443s
+ok      github.com/MokkeMeguru/retnonnilerr     2.443s
 ```
 
 congratulation!
@@ -379,7 +379,7 @@ use the analyzer as the linter, we install the analyzer code as command.
 package main
 
 import (
-	"github.com/MeguruMokke/retnonnilerr"
+	"github.com/MokkeMeguru/retnonnilerr"
 	"golang.org/x/tools/go/analysis/singlechecker"
 )
 
@@ -389,7 +389,7 @@ func main() {
 ```
 
 ```
-❯ go install github.com/MeguruMokke/retnonnilerr/cmd/retnonnilerr
+❯ go install github.com/MokkeMeguru/retnonnilerr/cmd/retnonnilerr
 ❯ cd path/to/product
 ❯ retnonnilerr ./internal/...
 ```
