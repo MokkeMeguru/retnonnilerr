@@ -6,6 +6,7 @@ on:
 
 env:
   REVIEWDOG_VERSION: v0.14.1
+  REVIEWDOG_GITHUB_API_TOKEN: ${{ github.token }}
 
 jobs:
   lint:
