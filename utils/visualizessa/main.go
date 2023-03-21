@@ -45,13 +45,17 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to parse file at ssa: cause %v", err)
 	}
-	ssaPkg.WriteTo(os.Stdout)
+	if _, err := ssaPkg.WriteTo(os.Stdout); err != nil {
+		log.Fatalf("Failed to write ssaPkg: cause %v", err)
+	}
 	for _, member := range ssaPkg.Members {
 		if fn, ok := member.(*ssa.Function); ok {
 			if fmt.Sprintf("./%s", fset.Position(fn.Pos()).Filename) != fset.Position(f.Pos()).Filename {
 				continue
 			}
-			ssaPkg.Func(fn.Name()).WriteTo(os.Stdout)
+			if _, err := ssaPkg.Func(fn.Name()).WriteTo(os.Stdout); err != nil {
+				log.Fatalf("Failed to write func: cause %v", err)
+			}
 		}
 	}
 }
