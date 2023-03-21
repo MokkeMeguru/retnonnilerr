@@ -1,6 +1,7 @@
 package retnonnilerr
 
 import (
+	"fmt"
 	"go/ast"
 	"go/token"
 	"go/types"
@@ -33,7 +34,9 @@ var Analyzer = &analysis.Analyzer{
 }
 
 func run(pass *analysis.Pass) (any, error) {
-	samplefunc2()
+	if err := samplefunc2(); err != nil {
+		return nil, err
+	}
 	ignoredLines := getIgnoredLines(pass.Files, pass.Fset)
 	s := pass.ResultOf[buildssa.Analyzer].(*buildssa.SSA)
 	for _, f := range s.SrcFuncs {
@@ -116,6 +119,7 @@ func samplefunc() error {
 
 func samplefunc2() error {
 	if err := samplefunc(); err != nil {
+		fmt.Println("this is error")
 		return nil
 	}
 	return nil
