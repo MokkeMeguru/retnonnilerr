@@ -89,7 +89,7 @@ func checkErrorReturnValue(b *ssa.BasicBlock, pass *analysis.Pass, filename stri
 			return
 		}
 		if len(ret.Results) != 0 && !hasErr {
-			pass.Reportf(ret.Pos(), "`return err` should be included in this return stmt. you seems to throw the error handling")
+			pass.Reportf(ret.Pos(), "`return err` should be included in this return stmt. you seem to be ignoring error handling")
 		}
 	}
 }
