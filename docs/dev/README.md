@@ -13,14 +13,14 @@ references:
 .
 ├── Makefile
 ├── README.md
-├── cmd // cli で呼び出すツール
+├── cmd // for cli
 │   └── {package-name}
 │       └── main.go
 ├── go.mod
-├── {package-name}.go // 本体のコード
+├── {package-name}.go // body
 ├── {package-name}_test.go
 ├── staticcheck.conf // ref: https://staticcheck.io/docs/configuration/
-└── testdata // テストデータ
+└── testdata
     └── src
         └── a
             ├── a.go
@@ -31,6 +31,8 @@ references:
 ### initial main code
 
 the first code for static analyzer is following one.
+
+when we need to check the return type, we can use the SSA (Static Single Assignment) form.
 
 ```golang
 package retnonnilerr
