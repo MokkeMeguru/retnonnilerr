@@ -36,17 +36,15 @@ func run(pass *analysis.Pass) (any, error) {
 	ignoredLines := getIgnoredLines(pass.Files, pass.Fset)
 	s := pass.ResultOf[buildssa.Analyzer].(*buildssa.SSA)
 	for _, f := range s.SrcFuncs {
-		fset := pass.Fset
-		fileName := fset.Position(f.Pos()).Filename
+		fileName := pass.Fset.Position(f.Pos()).Filename
 		for _, b := range f.Blocks {
 			for _, instr := range b.Instrs {
-				ifstmt, ok := instr.(*ssa.BinOp)
-				if !ok {
-					continue
-				}
-				if isNilErrorCheck(ifstmt) {
-					retBlock := ifstmt.Block().Succs[0]
-					checkErrorReturnValue(retBlock, pass, fileName, ignoredLines)
+				switch instr := instr.(type) {
+				case *ssa.BinOp:
+					if isNilErrorCheck(instr) {
+						retBlock := instr.Block().Succs[0]
+						checkErrorReturnValue(retBlock, pass, ignoredLines[fileName])
+					}
 				}
 			}
 		}
@@ -68,7 +66,7 @@ func isTypeError(t types.Type) bool {
 	return types.Identical(t, errorType)
 }
 
-func checkErrorReturnValue(b *ssa.BasicBlock, pass *analysis.Pass, filename string, ignoredLines map[string]map[int]bool) {
+func checkErrorReturnValue(b *ssa.BasicBlock, pass *analysis.Pass, ignoredLines map[int]bool) {
 	for _, instr := range b.Instrs {
 		ret, ok := instr.(*ssa.Return)
 		if !ok {
@@ -81,7 +79,7 @@ func checkErrorReturnValue(b *ssa.BasicBlock, pass *analysis.Pass, filename stri
 				hasErr = true
 			}
 		}
-		if ignoredLines[filename][pass.Fset.Position(ret.Pos()).Line] {
+		if ignoredLines[pass.Fset.Position(ret.Pos()).Line] {
 			return
 		}
 		if len(ret.Results) != 0 && !hasErr {

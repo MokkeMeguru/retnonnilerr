@@ -18,8 +18,8 @@ func f() error {
 ### From CLI
 
 ```
-cd path/to/product
 go install github.com/MokkeMeguru/retnonnilerr/cmd/retnonnilerr
+cd path/to/product
 retnonnilerr ./...
 ```
 

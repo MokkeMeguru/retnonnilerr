@@ -50,8 +50,6 @@ const (
 	doc  = "Retnonnilerr is a static analysis tool to detect `if err != nil { return nil }`"
 )
 
-var errorType = types.Universe.Lookup("error").Type()
-
 var Analyzer = &analysis.Analyzer{
 	Name: name,
 	Doc:  doc,
@@ -108,7 +106,7 @@ deps:
 	go install github.com/kisielk/errcheck@latest
 	go install honnef.co/go/tools/cmd/staticcheck@latest
 
-lint:
+lint: deps
 	go vet ./...
 	errcheck ./...
 	staticcheck ./...
@@ -182,171 +180,141 @@ import (
 	"flag"
 	"fmt"
 	"go/ast"
+	"go/importer"
 	"go/parser"
 	"go/token"
+	"go/types"
+	"log"
+	"os"
+
+	"golang.org/x/tools/go/ssa"
+	"golang.org/x/tools/go/ssa/ssautil"
 )
 
 func main() {
 	s := flag.String("f", "sample.go", "file-path")
+	d := flag.String("d", "./", "directory-path")
 	flag.Parse()
 
 	fset := token.NewFileSet()
-	f, err := parser.ParseFile(fset, *s, nil, 0)
+	f, err := parser.ParseFile(fset, *s, nil, parser.AllErrors)
 	if err != nil {
-		fmt.Printf("Failedto parse file: cause %v", err)
-		return
+		log.Fatalf("Failed to parse file at parser: cause %v", err)
 	}
-	ast.Print(fset, f)
+	pkgs, err := parser.ParseDir(fset, *d, nil, parser.AllErrors)
+	if err != nil {
+		log.Fatalf("Failed to parse dir at parser: cause %v", err)
+	}
+	files := []*ast.File{}
+	for _, pkg := range pkgs {
+		if pkg.Name != f.Name.Name {
+			continue
+		}
+		for _, _f := range pkg.Files {
+			files = append(files, _f)
+		}
+	}
+	typesPkg := types.NewPackage(f.Name.Name, "")
+	ssaPkg, _, err := ssautil.BuildPackage(&types.Config{
+		Importer: importer.Default(),
+	}, fset, typesPkg, files, ssa.GlobalDebug)
+	if err != nil {
+		log.Fatalf("Failed to parse file at ssa: cause %v", err)
+	}
+	if _, err := ssaPkg.WriteTo(os.Stdout); err != nil {
+		log.Fatalf("Failed to write ssaPkg: cause %v", err)
+	}
+	for _, member := range ssaPkg.Members {
+		if fn, ok := member.(*ssa.Function); ok {
+			if fmt.Sprintf("./%s", fset.Position(fn.Pos()).Filename) != fset.Position(f.Pos()).Filename {
+				continue
+			}
+			if _, err := ssaPkg.Func(fn.Name()).WriteTo(os.Stdout); err != nil {
+				log.Fatalf("Failed to write func: cause %v", err)
+			}
+		}
+	}
 }
 ```
 
 let's try it to the test code.
 
 ```golang
-❯ go run ./utils/visualizeast -f ./testdata/src/a/a.go
-     0  *ast.File {
-     1  .  Package: ./testdata/src/a/a.go:1:1
-     2  .  Name: *ast.Ident {
-     3  .  .  NamePos: ./testdata/src/a/a.go:1:9
-     4  .  .  Name: "a"
-     5  .  }
-     6  .  Decls: []ast.Decl (len = 3) {
-     7  .  .  0: *ast.GenDecl {
-     ...
-    53  .  .  }
-    54  .  .  1: *ast.FuncDecl {
-     ...
-   112  .  .  }
-   113  .  .  2: *ast.FuncDecl {
-   114  .  .  .  Name: *ast.Ident {
-   115  .  .  .  .  NamePos: ./testdata/src/a/a.go:11:6
-   116  .  .  .  .  Name: "funcB"
-   117  .  .  .  .  Obj: *ast.Object {
-   118  .  .  .  .  .  Kind: func
-   119  .  .  .  .  .  Name: "funcB"
-   120  .  .  .  .  .  Decl: *(obj @ 113)
-   121  .  .  .  .  }
-   122  .  .  .  }
-   123  .  .  .  Type: *ast.FuncType {
-     ...
-   151  .  .  .  }
-   152  .  .  .  Body: *ast.BlockStmt {
-   153  .  .  .  .  Lbrace: ./testdata/src/a/a.go:11:26
-   154  .  .  .  .  List: []ast.Stmt (len = 3) {
-   155  .  .  .  .  .  0: *ast.DeclStmt {
-     ...
-   182  .  .  .  .  .  }
-   183  .  .  .  .  .  1: *ast.IfStmt {
-   184  .  .  .  .  .  .  If: ./testdata/src/a/a.go:13:2
-   185  .  .  .  .  .  .  Cond: *ast.BinaryExpr {
-   186  .  .  .  .  .  .  .  X: *ast.Ident {
-   187  .  .  .  .  .  .  .  .  NamePos: ./testdata/src/a/a.go:13:5
-   188  .  .  .  .  .  .  .  .  Name: "err"
-   189  .  .  .  .  .  .  .  .  Obj: *(obj @ 166)
-   190  .  .  .  .  .  .  .  }
-   191  .  .  .  .  .  .  .  OpPos: ./testdata/src/a/a.go:13:9
-   192  .  .  .  .  .  .  .  Op: !=
-   193  .  .  .  .  .  .  .  Y: *ast.Ident {
-   194  .  .  .  .  .  .  .  .  NamePos: ./testdata/src/a/a.go:13:12
-   195  .  .  .  .  .  .  .  .  Name: "nil"
-   196  .  .  .  .  .  .  .  }
-   197  .  .  .  .  .  .  }
-   198  .  .  .  .  .  .  Body: *ast.BlockStmt {
-   199  .  .  .  .  .  .  .  Lbrace: ./testdata/src/a/a.go:13:16
-   200  .  .  .  .  .  .  .  List: []ast.Stmt (len = 1) {
-   201  .  .  .  .  .  .  .  .  0: *ast.ReturnStmt {
-   202  .  .  .  .  .  .  .  .  .  Return: ./testdata/src/a/a.go:14:3
-   203  .  .  .  .  .  .  .  .  .  Results: []ast.Expr (len = 2) {
-   204  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
-   205  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./testdata/src/a/a.go:14:10
-   206  .  .  .  .  .  .  .  .  .  .  .  Name: "nil"
-   207  .  .  .  .  .  .  .  .  .  .  }
-   208  .  .  .  .  .  .  .  .  .  .  1: *ast.Ident {
-   209  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./testdata/src/a/a.go:14:15
-   210  .  .  .  .  .  .  .  .  .  .  .  Name: "nil"
-   211  .  .  .  .  .  .  .  .  .  .  }
-   212  .  .  .  .  .  .  .  .  .  }
-   213  .  .  .  .  .  .  .  .  }
-   214  .  .  .  .  .  .  .  }
-   215  .  .  .  .  .  .  .  Rbrace: ./testdata/src/a/a.go:15:2
-   216  .  .  .  .  .  .  }
-   217  .  .  .  .  .  }
-   218  .  .  .  .  .  2: *ast.ReturnStmt {
-   219  .  .  .  .  .  .  Return: ./testdata/src/a/a.go:16:2
-   220  .  .  .  .  .  .  Results: []ast.Expr (len = 2) {
-   221  .  .  .  .  .  .  .  0: *ast.Ident {
-   222  .  .  .  .  .  .  .  .  NamePos: ./testdata/src/a/a.go:16:9
-   223  .  .  .  .  .  .  .  .  Name: "nil"
-   224  .  .  .  .  .  .  .  }
-   225  .  .  .  .  .  .  .  1: *ast.Ident {
-   226  .  .  .  .  .  .  .  .  NamePos: ./testdata/src/a/a.go:16:14
-   227  .  .  .  .  .  .  .  .  Name: "nil"
-   228  .  .  .  .  .  .  .  }
-   229  .  .  .  .  .  .  }
-   230  .  .  .  .  .  }
-   231  .  .  .  .  }
-   232  .  .  .  .  Rbrace: ./testdata/src/a/a.go:17:1
-   233  .  .  .  }
-   234  .  .  }
-   235  .  }
-   ...
-   256  }
+❯  go run ./utils/visualizessa -f ./testdata/src/a/a.go -d ./testdata/src/a
+package a:
+  type  T          struct{I int}
+  func  funcB      func() (*T, error)
+  func  init       func()
+  var   init$guard bool
+
+# Name: a.funcB
+# Package: a
+# Location: testdata/src/a/a.go:7:6
+func funcB() (*T, error):
+0:                                                                entry P:0 S:2
+        ; var err error @ 8:6 is nil:error
+        ; var err error @ 9:5 is nil:error
+        t0 = nil:error != nil:error                                        bool
+        ; *ast.BinaryExpr @ 9:5 is t0
+        if t0 goto 1 else 2
+1:                                                              if.then P:1 S:0
+        return nil:*T, nil:error
+2:                                                              if.done P:1 S:0
+        return nil:*T, nil:error
 ```
 
 the first solution of code is here.(some detail codes omitted)
 
 ```
-func run(pass *analysis.Pass) (interface{}, error) {
-	for _, f := range pass.Files {
-        // ignore test code
-		if strings.Contains(f.Name.Name, "_test") {
-			continue
-		}
-		for _, decl := range f.Decls {
-			walkDecl(decl, false, pass)
+func run(pass *analysis.Pass) (any, error) {
+	s := pass.ResultOf[buildssa.Analyzer].(*buildssa.SSA)
+	for _, f := range s.SrcFuncs {
+		for _, b := range f.Blocks {
+			for _, instr := range b.Instrs {
+				ifstmt, ok := instr.(*ssa.BinOp)
+				if !ok {
+					continue
+				}
+				if isNilErrorCheck(ifstmt) {
+					retBlock := ifstmt.Block().Succs[0]
+					checkErrorReturnValue(retBlock, pass)
+				}
+			}
 		}
 	}
 	return nil, nil
 }
 
-func walkDecl(decl ast.Decl, hasNotNilError bool, pass *analysis.Pass) {
-	switch decl := decl.(type) {
-	case *ast.FuncDecl:
-		walkStmt(decl.Body, hasNotNilError, pass)
-	default:
-		return
+func isNilErrorCheck(ifstmt *ssa.BinOp) bool {
+	if ifstmt.Op != token.NEQ {
+		return false
 	}
+	return (isTypeError(ifstmt.Y.Type()) && ifstmt.X.Name() == nilErr) || (isTypeError(ifstmt.X.Type()) && ifstmt.Y.Name() == "nil:error")
 }
 
-func walkStmt(stmt ast.Stmt, hasNotNilError bool, pass *analysis.Pass) {
-	switch stmt := stmt.(type) {
-	case *ast.BlockStmt:
-		for _, st := range stmt.List {
-			walkStmt(st, hasNotNilError, pass)
+func isTypeError(t types.Type) bool {
+	if _, ok := t.Underlying().(*types.Interface); !ok {
+		return false
+	}
+	return types.Identical(t, errorType)
+}
+
+func checkErrorReturnValue(b *ssa.BasicBlock, pass *analysis.Pass) {
+	for _, instr := range b.Instrs {
+		ret, ok := instr.(*ssa.Return)
+		if !ok {
+			continue
 		}
-	case *ast.IfStmt:
-		walkStmt(stmt.Body, isIfStmtValidateNilError(stmt, pass), pass)
-	case *ast.ReturnStmt:
-		if hasNotNilError {
-			if !hasErrorInExprs(stmt.Results, pass) {
-				pass.Reportf(stmt.Pos(), "`return err` should be included in this return stmt. you seems to throw the error handling")
+
+		hasErr := false
+		for _, v := range ret.Results {
+			if isTypeError(v.Type()) && v.Name() != nilErr {
+				hasErr = true
 			}
 		}
-	}
-}
-
-func isIfStmtValidateNilError(ifStmt *ast.IfStmt, pass *analysis.Pass) bool {
-	switch cond := ifStmt.Cond.(type) {
-	case *ast.BinaryExpr:
-		switch cond.Op {
-		case token.NEQ:
-			return isErrorType(findExprType(cond.X, pass)) && isExprNil(cond.Y) ||
-				isErrorType(findExprType(cond.Y, pass)) && isExprNil(cond.X)
-		default:
-			return false
+		if len(ret.Results) != 0 && !hasErr {
+			pass.Reportf(ret.Pos(), "`return err` should be included in this return stmt. you seem to be ignoring error handling")
 		}
-	default:
-		return false
 	}
 }
 ```
@@ -369,27 +337,3 @@ we got the analyzer to detect `return nil` despite of handling `err`.
 but (you already know) this analyzer is not the completed one.
 
 we need to more test cases and try TDD cycle to improve the degree of perfection.
-
-## include the code
-
-use the analyzer as the linter, we install the analyzer code as command.
-
-```golang
-// cmd/retnonnilerr/main.go
-package main
-
-import (
-	"github.com/MokkeMeguru/retnonnilerr"
-	"golang.org/x/tools/go/analysis/singlechecker"
-)
-
-func main() {
-	singlechecker.Main(retnonnilerr.Analyzer)
-}
-```
-
-```
-❯ go install github.com/MokkeMeguru/retnonnilerr/cmd/retnonnilerr
-❯ cd path/to/product
-❯ retnonnilerr ./internal/...
-```

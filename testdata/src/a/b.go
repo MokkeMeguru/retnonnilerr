@@ -2,7 +2,7 @@ package a
 
 import "errors"
 
-func funcH() error {
+func funcBA() error {
 	if _, err := funcB(); err != nil {
 		return errors.New("error is %w")
 	}
