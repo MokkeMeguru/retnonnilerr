@@ -85,7 +85,7 @@ func checkErrorReturnValue(b *ssa.BasicBlock, pass *analysis.Pass, filename stri
 			return
 		}
 		if len(ret.Results) != 0 && !hasErr {
-			pass.Reportf(ret.Pos(), "`return err` should be included in this return stmt. you seems to throw the error handling")
+			pass.Reportf(ret.Pos(), "`return err` should be included in this return stmt. you seem to be ignoring error handling")
 		}
 	}
 }
@@ -107,15 +107,4 @@ func getIgnoredLines(files []*ast.File, fset *token.FileSet) map[string]map[int]
 		ignoredLines[fileName] = ignoredLinesByFile
 	}
 	return ignoredLines
-}
-
-func samplefunc() error {
-	return nil
-}
-
-func samplefunc2() error {
-	if err := samplefunc(); err != nil {
-		return nil
-	}
-	return nil
 }

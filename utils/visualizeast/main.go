@@ -2,10 +2,10 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"log"
 )
 
 func main() {
@@ -15,11 +15,9 @@ func main() {
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(fset, *s, nil, 0)
 	if err != nil {
-		fmt.Printf("Failedto parse file: cause %v", err)
-		return
+		log.Fatalf("Failed to parse file: cause %v", err)
 	}
 	if err := ast.Print(fset, f); err != nil {
-		fmt.Printf("Print failed: cause %v", err)
-		return
+		log.Fatalf("Print failed: cause %v", err)
 	}
 }
