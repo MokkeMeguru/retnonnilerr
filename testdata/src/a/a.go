@@ -45,6 +45,7 @@ func funcF() (*T, string, error) {
 	return nil, "", nil
 }
 
+// return err
 func funcG() error {
 	if _, err := funcB(); err != nil {
 		return nil // want "return err"

@@ -1,0 +1,47 @@
+name: ci
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+env:
+  REVIEWDOG_VERSION: v0.14.1
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: setup go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: "go.mod"
+          cache: true
+      - run: make lint
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: setup go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: "go.mod"
+          cache: true
+      - run: make test
+  reviewdog:
+    name: reviewdog
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: setup go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: "go.mod"
+          cache: true
+      - uses: reviewdog/action-setup@v1
+        with:
+          reviewdog_version: ${{ env.REVIEWDOG_VERSION }}
+      - name: customlinters
+        uses: ./.github/actions/customlinters
