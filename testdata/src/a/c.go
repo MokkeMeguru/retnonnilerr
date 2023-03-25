@@ -16,3 +16,16 @@ func funcCB() (*T, error) {
 	}
 	return t, nil
 }
+
+func funcCC() (*T, error) {
+	t, err := funcB()
+	if err != nil {
+		return nil, err
+	}
+	t, err = funcB()
+	if err != nil {
+		//lint:ignore retnonnilerr ignore
+		return nil, nil
+	}
+	return t, nil
+}
