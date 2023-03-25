@@ -9,7 +9,6 @@ import (
 	"github.com/gostaticanalysis/comment/passes/commentmap"
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/passes/buildssa"
-	"golang.org/x/tools/go/analysis/passes/inspect"
 	"golang.org/x/tools/go/ssa"
 )
 
@@ -27,7 +26,6 @@ var Analyzer = &analysis.Analyzer{
 	Run:  run,
 	Requires: []*analysis.Analyzer{
 		buildssa.Analyzer,
-		inspect.Analyzer,
 		commentmap.Analyzer,
 	},
 }

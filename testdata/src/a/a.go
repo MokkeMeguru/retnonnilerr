@@ -52,3 +52,13 @@ func funcG() error {
 	}
 	return nil
 }
+
+func funcH() error {
+	if _, err := funcB(); err != nil {
+		return err
+	}
+	if _, err := funcB(); err != nil {
+		return nil // want "return err"
+	}
+	return nil
+}
