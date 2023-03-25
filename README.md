@@ -1,5 +1,6 @@
 # retnonnilerr
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/MokkeMeguru/retnonnilerr.svg)](https://pkg.go.dev/github.com/MokkeMeguru/retnonnilerr)
 [![Test](https://github.com/MokkeMeguru/retnonnilerr/actions/workflows/ci.yml/badge.svg)](https://github.com/MokkeMeguru/retnonnilerr/actions/workflows/ci.yml)
 
 `retnonnilerr` is a static analysis tool to prevent below unhandling error.
