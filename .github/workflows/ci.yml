@@ -3,6 +3,7 @@ name: ci
 on:
   pull_request:
     types: [opened, synchronize]
+  push:
 
 env:
   REVIEWDOG_VERSION: v0.14.1
