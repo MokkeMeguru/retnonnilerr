@@ -44,10 +44,16 @@ If you want to ignore this linter at the line, you can comment `lint:ignore retn
 func f() error {
     x, err := fn()
     if err != nil {
-        // lint:ignore retnonnilerr TODO fix
+        //lint:ignore retnonnilerr TODO fix
         return nil
     }
     fmt.Printf("x is %v\n", x)
     return nil
 }
 ```
+
+## References
+
+- [nilerr](https://github.com/gostaticanalysis/nilerr/)
+
+  Very similar, except for the lack of test code checks and the part that inspects err without exceptions.
